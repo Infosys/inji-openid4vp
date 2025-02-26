@@ -23,6 +23,10 @@ enum class ClientIdScheme(val value: String) {
     REDIRECT_URI("redirect_uri"),
     DID("did")
 }
+enum class ResponseMode(val codable: String) {
+    DirectPost("direct_post"),
+    DirectPostJwt("direct_post.jwt"),
+}
 
 data class AuthorizationRequest(
     val clientId: String,

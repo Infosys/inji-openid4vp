@@ -1,6 +1,6 @@
 package io.mosip.openID4VP.jwe.models
 
-import kotlinx.serialization.SerialName
+import io.mosip.openID4VP.common.Logger
 import kotlinx.serialization.Serializable
 
 @Serializable

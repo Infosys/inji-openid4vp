@@ -51,10 +51,7 @@ class OpenID4VP(private val traceabilityId: String) {
         try {
             return AuthorizationResponse.shareVP(
                 vpResponseMetadata,
-                authorizationRequest.nonce,
-                authorizationRequest.state,
-                authorizationRequest.responseUri!!,
-                (this.authorizationRequest.presentationDefinition as PresentationDefinition).id
+                authorizationRequest
             )
         } catch (exception: Exception) {
             sendErrorToVerifier(exception)

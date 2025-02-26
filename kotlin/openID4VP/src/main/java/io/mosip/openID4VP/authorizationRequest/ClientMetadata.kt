@@ -3,6 +3,7 @@ package io.mosip.openID4VP.authorizationRequest
 import Generated
 import io.mosip.openID4VP.common.FieldDeserializer
 import io.mosip.openID4VP.common.Logger
+import io.mosip.openID4VP.jwe.models.JWKS
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -23,6 +24,7 @@ object ClientMetadataSerializer : KSerializer<ClientMetadata> {
 		element<Map<String,String>>("vp_formats", isOptional = false)
 		element<String>("authorization_encrypted_response_alg", isOptional = true)
 		element<String>("authorization_encrypted_response_enc", isOptional = true)
+		element<JWKS>("jwks", isOptional = true)
 	}
 
 	override fun deserialize(decoder: Decoder): ClientMetadata {
@@ -58,20 +60,22 @@ object ClientMetadataSerializer : KSerializer<ClientMetadata> {
 				fieldType = "map"
 			)
 		val authorizationEncryptedResponseAlg: String? =
-			deserializer.deserializeField(key = "authorizationEncryptedResponseAlg", fieldType = "String")
+			deserializer.deserializeField(key = "authorization_encrypted_response_alg", fieldType = "String")
 		val authorizationEncryptedResponseEnc: String? =
 			deserializer.deserializeField(
 				key = "authorization_encrypted_response_enc",
 				fieldType = "String"
 			)
-
+		val jwks: JWKS? = deserializer.deserializeField(key = "jwks", fieldType = "JWKS")
+		jwks?.validate()
 
 		return ClientMetadata(
 			clientName = clientName,
 			logoUri = logoUri,
 			vpFormats = vpFormats,
 			authorizationEncryptedResponseAlg = authorizationEncryptedResponseAlg,
-			authorizationEncryptedResponseEnc = authorizationEncryptedResponseEnc
+			authorizationEncryptedResponseEnc = authorizationEncryptedResponseEnc,
+			jwks = jwks,
 		)
     }
 
@@ -98,6 +102,7 @@ class ClientMetadata(
 	@SerialName("vp_formats") val vpFormats: Map<String, String>,
 	@SerialName("authorization_encrypted_response_alg") val authorizationEncryptedResponseAlg: String?,
 	@SerialName("authorization_encrypted_response_enc") val authorizationEncryptedResponseEnc: String?,
+	@SerialName("jwks") val jwks: JWKS?,
 ) : Validatable {
 
 	override fun validate() {

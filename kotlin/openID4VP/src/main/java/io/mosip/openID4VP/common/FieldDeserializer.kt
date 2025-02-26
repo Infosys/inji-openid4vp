@@ -1,5 +1,7 @@
 package io.mosip.openID4VP.common
 
+import android.util.Log
+import io.mosip.openID4VP.jwe.models.JWKS
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
@@ -68,6 +70,9 @@ class FieldDeserializer(
 					ListSerializer(String.serializer()),
 					data
 				) as T
+
+				fieldType == "JWKS" -> Json.decodeFromJsonElement<JWKS>(data) as T
+
 
 				fieldType.startsWith("Map") -> Json.decodeFromJsonElement<Map<String, JsonElement>>(data)
 					.mapValues { (_, value) -> parseDynamicValue(value) } as T

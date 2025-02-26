@@ -1,7 +1,14 @@
 package io.mosip.openID4VP.testData
 
+import io.mosip.openID4VP.authorizationRequest.AuthorizationRequest
 import io.mosip.openID4VP.authorizationRequest.ClientIdScheme
+import io.mosip.openID4VP.authorizationRequest.ClientMetadataSerializer
+import io.mosip.openID4VP.authorizationRequest.deserializeAndValidate
+import io.mosip.openID4VP.authorizationRequest.presentationDefinition.PresentationDefinitionSerializer
 import io.mosip.openID4VP.dto.Verifier
+import kotlinx.serialization.json.Json
+import okhttp3.mockwebserver.MockWebServer
+
 
 val clientMetadata = """
     {
@@ -9,6 +16,56 @@ val clientMetadata = """
   "logo_uri": "<logo_uri>",
   "authorization_encrypted_response_alg": "ECDH-ES",
   "authorization_encrypted_response_enc": "A256GCM",
+  "jwks": {
+      "keys": [
+          {
+              "kty": "OKP",
+              "use": "enc",
+              "crv": "X25519",
+              "x": "IKXhA7W1HD1sAl+OfG59VKAqciWrrOL1Rw5F+PGLhi4=",
+              "alg": "ECDH-ES",
+              "kid": "ed-key1",
+              "y": null
+          }
+      ]
+  },
+  "vp_formats": {
+    "mso_mdoc": {
+      "alg": [
+        "ES256",
+        "EdDSA"
+      ]
+    },
+    "ldp_vp": {
+      "proof_type": [
+        "Ed25519Signature2018",
+        "Ed25519Signature2020",
+        "RsaSignature2018"
+      ]
+    }
+  }
+}
+""".trimIndent()
+
+val clientMetadataWithEmptyPublicKey  = """
+    {
+  "client_name": "Requester name",
+  "logo_uri": "<logo_uri>",
+  "authorization_encrypted_response_alg": "ECDH-ES",
+  "authorization_encrypted_response_enc": "A256GCM",
+  "jwks": {
+      "keys": [
+          {
+              "kty": "OKP",
+              "use": "enc",
+              "crv": "Ed25519",
+              "x": "",
+              "alg": "EdDSA",
+              "kid": "ed-key1",
+              "y": null
+          }
+      ]
+  },
   "vp_formats": {
     "mso_mdoc": {
       "alg": [
@@ -182,4 +239,21 @@ val clientIdAndSchemeOfPreRegistered = mapOf(
 val clientIdAndSchemeOfReDirectUri = mapOf(
     "client_id" to "https://mock-verifier.com",
     "client_id_scheme" to "redirect_uri",
+)
+
+
+val encodedAuthorizationRequestForValidRequestWithResponseUriAndResponseModeJWT = AuthorizationRequest(
+    clientId = "https://injiverify.dev2.mosip.net",
+    responseType = "vp_token",
+    responseMode = "direct_post.jwt",
+    presentationDefinition = deserializeAndValidate(
+        presentationDefinition,
+        PresentationDefinitionSerializer
+    ),
+    nonce = "bMHvX1HGhbh8zqlSWf/fuQ==",
+    state = "fsnC8ixCs6mWyV+00k23Qg==",
+    responseUri = "http://localhost:8080/injiverify.dev2.mosip.net/redirect",
+    clientMetadata = deserializeAndValidate(clientMetadata, ClientMetadataSerializer),
+    clientIdScheme = "did",
+    redirectUri = "ji"
 )

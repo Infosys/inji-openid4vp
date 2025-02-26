@@ -1,6 +1,13 @@
 package io.mosip.openID4VP.jwe.service
 
-import io.mosip.openID4VP.jwe.exception.JWEException
+import AESGCMEncryption
+import ECDHESAlgorithm
+import JWEAlgorithm
+import JWEEncryption
+import android.os.Build
+import androidx.annotation.RequiresApi
+import encodeJWEComponents
+import io.mosip.openID4VP.jwe.exception.JWEExceptions
 import io.mosip.openID4VP.jwe.models.JWEEncryptionConfig
 import io.mosip.openID4VP.jwe.models.JWK
 import java.util.Base64
@@ -19,13 +26,14 @@ class JWEEncryptionService(
         val algorithm = getAlgorithm()
         val encryption = getEncryption()
 
+//        Use standard decoding after PR
         val publicKeyData = Base64.getDecoder().decode(makeBase64Standard(jwk.x))
-            ?: throw JWEException.PublicKeyConversionFailed()
+            ?: throw JWEExceptions.PublicKeyConversionFailed()
 
         val contentEncryptionKey = algorithm.deriveKey(publicKeyData)
 
         val payloadData = payload.toByteArray(Charsets.UTF_8)
-            ?: throw JWEException.PayloadConversionFailed()
+            ?: throw JWEExceptions.PayloadConversionFailed()
 
         val (ciphertext, nonce, tag) = encryption.encrypt(payloadData, contentEncryptionKey)
 
@@ -48,7 +56,7 @@ class JWEEncryptionService(
     private fun getAlgorithm(): JWEAlgorithm {
         return when (config.alg) {
             "ECDH-ES" -> ECDHESAlgorithm()
-            else -> throw JWEException.UnsupportedKeyExchangeAlgorithm()
+            else -> throw JWEExceptions.UnsupportedKeyExchangeAlgorithm()
         }
     }
 
@@ -56,7 +64,7 @@ class JWEEncryptionService(
     private fun getEncryption(): JWEEncryption {
         return when (config.enc) {
             "A256GCM" -> AESGCMEncryption()
-            else -> throw JWEException.UnsupportedEncryptionAlgorithm()
+            else -> throw JWEExceptions.UnsupportedEncryptionAlgorithm()
         }
     }
 

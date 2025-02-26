@@ -14,6 +14,9 @@ sealed class JWEExceptions {
     class UnsupportedEncryptionAlgorithm :
         Exception("Required Encryption algorithm is not supported.")
 
+    class EncryptionConfigExtractionFailed :
+        Exception("Unable to extract authorization response encryption config from client metadata.")
+
     class InvalidJwksInput(fieldPath: String) :
         Exception("Invalid Input: $fieldPath param is empty.")
 }

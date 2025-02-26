@@ -1,3 +1,5 @@
+import io.mosip.openID4VP.jwe.models.JWEEncryptionConfig
+import io.mosip.openID4VP.jwe.models.JWK
 import javax.crypto.SecretKey
 
 interface JWEAlgorithm {

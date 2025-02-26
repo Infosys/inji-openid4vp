@@ -1,3 +1,7 @@
+import android.os.Build
+import androidx.annotation.RequiresApi
+import io.mosip.openID4VP.common.Logger
+import io.mosip.openID4VP.jwe.models.JWK
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToJsonElement
@@ -40,5 +44,6 @@ fun validateField(value: String, fieldName: String) {
 }
 
 fun base64URLEscaped(data: ByteArray): String {
+//    Use standard encoding after PR
     return Base64.getUrlEncoder().withoutPadding().encodeToString(data)
 }

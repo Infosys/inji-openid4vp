@@ -236,15 +236,26 @@ fun parseAndValidatePresentationDefinitionInAuthorizationRequest(params: Mutable
 }
 
 fun parseAndValidateClientMetadataInAuthorizationRequest(params: MutableMap<String, Any>): MutableMap<String, Any> {
-    var clientMetadata: ClientMetadata?
-    params["client_metadata"]?.let {
-        clientMetadata =
-            deserializeAndValidate(
-                (params["client_metadata"]).toString(),
-                ClientMetadataSerializer
+    if(params["client_metadata"] == null)
+        return params
+    val clientMetadata: ClientMetadata = deserializeAndValidate(
+            (params["client_metadata"]).toString(),
+            ClientMetadataSerializer
+        )
+
+    val responseMode = params["response_mode"] as? String
+    if (responseMode == ResponseMode.DirectPostJwt.name) {
+        if (clientMetadata.jwks == null ||
+            clientMetadata.authorizationEncryptedResponseAlg == null ||
+            clientMetadata.authorizationEncryptedResponseEnc == null) {
+            throw Logger.handleException(
+                exceptionType = "MissingInputsInClientMetadataForResponseModeDirectPostJwt",
+                className = AuthorizationRequest::class.java.simpleName
             )
-        params["client_metadata"] = clientMetadata!!
+        }
     }
+
+    params["client_metadata"] = clientMetadata
     return params
 }
 
