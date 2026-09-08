@@ -17,6 +17,7 @@ import io.mosip.openID4VP.exceptions.OpenID4VPExceptions
 import io.mosip.openID4VP.networkManager.NetworkManagerClient.Companion.sendHTTPRequest
 import io.mosip.openID4VP.responseModeHandler.ResponseDispatchInfo
 import io.mosip.vercred.vcverifier.keyResolver.types.did.DidPublicKeyResolver
+import java.net.URLDecoder
 import java.security.PublicKey
 
 private val className = DecentralizedIdentifierPrefixAuthorizationRequestHandler::class.simpleName!!
@@ -85,7 +86,7 @@ class DecentralizedIdentifierPrefixAuthorizationRequestHandler(
             val services = didDocument["service"] as? List<Map<String, Any>> ?: emptyList()
             val serviceEndpoints = services.mapNotNull { it["serviceEndpoint"] as? String }
 
-            if (serviceEndpoints.isNotEmpty() && responseUri !in serviceEndpoints) {
+            if (responseUri !in serviceEndpoints) {
                 throw OpenID4VPExceptions.InvalidData(
                     "response_uri '$responseUri' is not a service endpoint of client_id DID '$didUrl'",
                     className,
@@ -105,7 +106,7 @@ class DecentralizedIdentifierPrefixAuthorizationRequestHandler(
     private fun constructDidWebDocumentUrl(didUrl: String): String {
         val methodSpecificId = didUrl.removePrefix("did:web:")
         val idComponents = methodSpecificId.split(":")
-        val baseDomain = idComponents.first()
+        val baseDomain = URLDecoder.decode(idComponents.first(), "UTF-8")
         val path = idComponents.drop(1).joinToString("/")
         return if (path.isEmpty()) {
             "https://$baseDomain/.well-known/did.json"
