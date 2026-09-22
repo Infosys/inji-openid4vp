@@ -253,7 +253,6 @@ class UnsignedLdpVPTokenBuilderTest {
     fun `test build rejects invalid holder identifiers`() {
         val invalidHolderIds = listOf(
             "base64url",
-            "did:jwk:base64url==",
             "did:jwk:base64url#12",
             "did:key:z6MkhWUE3JPyK6n4F6yA#z6MkrDifferentFingerprint",
             "did:example:123"
@@ -647,11 +646,17 @@ class UnsignedLdpVPTokenBuilderTest {
     }
 
     @Test
+    fun `test validateHolderId strips base64url padding from did jwk`() {
+        val paddedDid = "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6IlAtMjU2IiwieCI6IjFqNUtiM3JXNXRaMjBRYW5tZ1pYTkJNQzFGOExQNGRjS1VwWm5ZQ2tESEkiLCJ5IjoiaUR6MlpCOHZkS0Y1U05fSkRReHVFT29JMHpQNGV6ZXN5WS13NHo1bTdHdyIsImFsZyI6IkVTMjU2In0="
+        val expected = paddedDid.trimEnd('=')
+        assertEquals(expected, UnsignedLdpVPTokenBuilder.validateHolderId(paddedDid))
+    }
+
+    @Test
     fun `test validateHolderId rejects non-DID and unsupported DID methods`() {
         listOf(
             "base64url",
             "base64url==",
-            "did:jwk:base64url==",
             "did:jwk:base64url#12",
             "did:jwk:base64url#",
             "did:key:not-a-multibase-value",

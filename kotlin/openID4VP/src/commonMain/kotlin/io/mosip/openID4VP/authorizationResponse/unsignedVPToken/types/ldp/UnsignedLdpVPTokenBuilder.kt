@@ -232,10 +232,11 @@ internal class UnsignedLdpVPTokenBuilder(
         }
 
         internal fun validateHolderId(holderId: String): String {
-            val hasValidDidSyntax = SUPPORTED_HOLDER_DID_PATTERN.matches(holderId)
-            val hasValidDidKeyFragment = if (holderId.startsWith("did:key:") && holderId.contains('#')) {
-                val fingerprint = holderId.substringAfter("did:key:").substringBefore('#')
-                val fragment = holderId.substringAfter('#')
+            val normalizedId = holderId.trimEnd('=')
+            val hasValidDidSyntax = SUPPORTED_HOLDER_DID_PATTERN.matches(normalizedId)
+            val hasValidDidKeyFragment = if (normalizedId.startsWith("did:key:") && normalizedId.contains('#')) {
+                val fingerprint = normalizedId.substringAfter("did:key:").substringBefore('#')
+                val fragment = normalizedId.substringAfter('#')
                 fragment == fingerprint
             } else {
                 true
@@ -248,7 +249,7 @@ internal class UnsignedLdpVPTokenBuilder(
                 )
             }
 
-            return holderId
+            return normalizedId
         }
     }
 }
