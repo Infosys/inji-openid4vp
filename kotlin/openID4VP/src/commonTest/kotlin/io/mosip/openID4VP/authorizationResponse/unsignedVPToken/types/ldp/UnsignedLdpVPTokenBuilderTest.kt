@@ -646,21 +646,19 @@ class UnsignedLdpVPTokenBuilderTest {
     }
 
     @Test
-    fun `test validateHolderId strips base64url padding from did jwk`() {
-        mapOf(
-            "did:jwk:base64url==" to "did:jwk:base64url",
-            "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6IlAtMjU2IiwieCI6IjFqNUtiM3JXNXRaMjBRYW5tZ1pYTkJNQzFGOExQNGRjS1VwWm5ZQ2tESEkiLCJ5IjoiaUR6MlpCOHZkS0Y1U05fSkRReHVFT29JMHpQNGV6ZXN5WS13NHo1bTdHdyIsImFsZyI6IkVTMjU2In0=" to
-                "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6IlAtMjU2IiwieCI6IjFqNUtiM3JXNXRaMjBRYW5tZ1pYTkJNQzFGOExQNGRjS1VwWm5ZQ2tESEkiLCJ5IjoiaUR6MlpCOHZkS0Y1U05fSkRReHVFT29JMHpQNGV6ZXN5WS13NHo1bTdHdyIsImFsZyI6IkVTMjU2In0"
-        ).forEach { (padded, expected) ->
-            assertEquals(expected, UnsignedLdpVPTokenBuilder.validateHolderId(padded))
+    fun `test validateHolderId accepts padded did jwk and returns original holder id`() {
+        listOf(
+            "did:jwk:base64url==",
+            "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6IlAtMjU2IiwieCI6IjFqNUtiM3JXNXRaMjBRYW5tZ1pYTkJNQzFGOExQNGRjS1VwWm5ZQ2tESEkiLCJ5IjoiaUR6MlpCOHZkS0Y1U05fSkRReHVFT29JMHpQNGV6ZXN5WS13NHo1bTdHdyIsImFsZyI6IkVTMjU2In0="
+        ).forEach { padded ->
+            assertEquals(padded, UnsignedLdpVPTokenBuilder.validateHolderId(padded))
         }
     }
 
     @Test
-    fun `test validateHolderId strips base64url padding from did jwk with fragment`() {
+    fun `test validateHolderId accepts padded did jwk with fragment and returns original holder id`() {
         val paddedDid = "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6IlAtMjU2IiwieCI6IjFqNUtiM3JXNXRaMjBRYW5tZ1pYTkJNQzFGOExQNGRjS1VwWm5ZQ2tESEkiLCJ5IjoiaUR6MlpCOHZkS0Y1U05fSkRReHVFT29JMHpQNGV6ZXN5WS13NHo1bTdHdyIsImFsZyI6IkVTMjU2In0=#0"
-        val expected = "did:jwk:eyJrdHkiOiJFQyIsInVzZSI6InNpZyIsImNydiI6IlAtMjU2IiwieCI6IjFqNUtiM3JXNXRaMjBRYW5tZ1pYTkJNQzFGOExQNGRjS1VwWm5ZQ2tESEkiLCJ5IjoiaUR6MlpCOHZkS0Y1U05fSkRReHVFT29JMHpQNGV6ZXN5WS13NHo1bTdHdyIsImFsZyI6IkVTMjU2In0#0"
-        assertEquals(expected, UnsignedLdpVPTokenBuilder.validateHolderId(paddedDid))
+        assertEquals(paddedDid, UnsignedLdpVPTokenBuilder.validateHolderId(paddedDid))
     }
 
     @Test
