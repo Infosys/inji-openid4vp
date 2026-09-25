@@ -231,15 +231,33 @@ internal class UnsignedLdpVPTokenBuilder(
             )
         }
 
+        // inji-certify historically generated did:jwk holder IDs with base64 padding (=),
+        // which the SUPPORTED_HOLDER_DID_PATTERN regex rejects. Strips padding only for
+        // the regex check — the original ID is preserved so the VP holder continues to
+        // match credentialSubject.id in credentials already issued with padding.
+        private fun sanitizeDidJwk(holderId: String): String {
+            if (!holderId.startsWith("did:jwk:")) return holderId
+
+            val did = holderId.substringBefore('#').trimEnd('=')
+            val fragment = holderId.substringAfter('#', "")
+
+            return if (holderId.contains('#')) "$did#$fragment" else did
+        }
+
         internal fun validateHolderId(holderId: String): String {
-            val hasValidDidSyntax = SUPPORTED_HOLDER_DID_PATTERN.matches(holderId)
-            val hasValidDidKeyFragment = if (holderId.startsWith("did:key:") && holderId.contains('#')) {
-                val fingerprint = holderId.substringAfter("did:key:").substringBefore('#')
-                val fragment = holderId.substringAfter('#')
-                fragment == fingerprint
-            } else {
-                true
-            }
+            val sanitizedHolderId = sanitizeDidJwk(holderId)
+
+            val hasValidDidSyntax =
+                SUPPORTED_HOLDER_DID_PATTERN.matches(sanitizedHolderId)
+
+            val hasValidDidKeyFragment =
+                if (holderId.startsWith("did:key:") && holderId.contains('#')) {
+                    val fingerprint = holderId.substringAfter("did:key:").substringBefore('#')
+                    val fragment = holderId.substringAfter('#')
+                    fragment == fingerprint
+                } else {
+                    true
+                }
 
             if (!hasValidDidSyntax || !hasValidDidKeyFragment) {
                 throw OpenID4VPExceptions.InvalidData(
