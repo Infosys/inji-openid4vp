@@ -232,34 +232,32 @@ internal class UnsignedLdpVPTokenBuilder(
         }
 
         // inji-certify historically generated did:jwk holder IDs with base64 padding (=),
-        // which the SUPPORTED_HOLDER_DID_PATTERN regex rejects. Padding is stripped only
-        // for the regex check — the original ID is returned unchanged so the VP holder
-        // continues to match credentialSubject.id in credentials already issued with padding (backward compatibility).
-        private fun isValidDidJwkHolderId(holderId: String): Boolean {
-            val fragment = if (holderId.contains('#')) "#" + holderId.substringAfter('#') else ""
-            val methodSpecificId = holderId.substringAfter("did:jwk:").substringBefore('#')
-            return SUPPORTED_HOLDER_DID_PATTERN.matches("did:jwk:" + methodSpecificId.trimEnd('=') + fragment)
+        // which the SUPPORTED_HOLDER_DID_PATTERN regex rejects. Strips padding only for
+        // the regex check — the original ID is preserved so the VP holder continues to
+        // match credentialSubject.id in credentials already issued with padding.
+        private fun sanitizeDidJwk(holderId: String): String {
+            if (!holderId.startsWith("did:jwk:")) return holderId
+
+            val did = holderId.substringBefore('#').trimEnd('=')
+            val fragment = holderId.substringAfter('#', "")
+
+            return if (holderId.contains('#')) "$did#$fragment" else did
         }
 
         internal fun validateHolderId(holderId: String): String {
-            if (holderId.startsWith("did:jwk:")) {
-                if (!isValidDidJwkHolderId(holderId)) {
-                    throw OpenID4VPExceptions.InvalidData(
-                        "Holder ID must be a valid did:jwk, did:key, or did:web identifier: $holderId",
-                        className
-                    )
-                }
-                return holderId
-            }
+            val sanitizedHolderId = sanitizeDidJwk(holderId)
 
-            val hasValidDidSyntax = SUPPORTED_HOLDER_DID_PATTERN.matches(holderId)
-            val hasValidDidKeyFragment = if (holderId.startsWith("did:key:") && holderId.contains('#')) {
-                val fingerprint = holderId.substringAfter("did:key:").substringBefore('#')
-                val fragment = holderId.substringAfter('#')
-                fragment == fingerprint
-            } else {
-                true
-            }
+            val hasValidDidSyntax =
+                SUPPORTED_HOLDER_DID_PATTERN.matches(sanitizedHolderId)
+
+            val hasValidDidKeyFragment =
+                if (holderId.startsWith("did:key:") && holderId.contains('#')) {
+                    val fingerprint = holderId.substringAfter("did:key:").substringBefore('#')
+                    val fragment = holderId.substringAfter('#')
+                    fragment == fingerprint
+                } else {
+                    true
+                }
 
             if (!hasValidDidSyntax || !hasValidDidKeyFragment) {
                 throw OpenID4VPExceptions.InvalidData(
